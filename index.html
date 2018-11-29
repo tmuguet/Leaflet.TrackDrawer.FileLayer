@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <meta name="author" content="Thomas Muguet" />
+
+    <title>Leaflet.TrackDrawer.FileLayer</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="node_modules/leaflet.awesome-markers/dist/leaflet.awesome-markers.css" />
+    <link rel="stylesheet" href="node_modules/leaflet-easybutton/src/easy-button.css" />
+
+    <script src="node_modules/@babel/polyfill/dist/polyfill.min.js"></script>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/leaflet/dist/leaflet.js"></script>
+    <script src="node_modules/leaflet.awesome-markers/dist/leaflet.awesome-markers.min.js"></script>
+    <script src="node_modules/leaflet-easybutton/src/easy-button.js"></script>
+    <script src="node_modules/@mapbox/togeojson/togeojson.js"></script>
+    <script src="node_modules/leaflet-filelayer/src/leaflet.filelayer.js"></script>
+    <script src="node_modules/leaflet-trackdrawer/dist/leaflet.trackdrawer.min.js"></script>
+    <script src="dist/leaflet.trackdrawer.filelayer.js"></script>
+  </head>
+
+  <body>
+    <div id="map" style="position: absolute; top:0px; left: 0px; bottom: 100px; right: 0px;"></div>
+    <div
+      id="console"
+      style="position: absolute; height: 100px; left: 0px; bottom: 0px; right: 0px; overflow: auto;"
+    ></div>
+
+    <script>
+      window.onload = function() {
+        var map = L.map('map', {
+          center: L.latLng(44.96777356135154, 6.06822967529297),
+          zoom: 13,
+        });
+
+        var osmUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        var osmAttrib = 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors';
+        var osm = new L.TileLayer(osmUrl, { attribution: osmAttrib });
+        map.addLayer(osm);
+
+        var drawRoute = L.TrackDrawer.track({}).addTo(map);
+
+        var importBtn = L.easyButton({
+          states: [
+            {
+              icon: 'fa-cloud-upload',
+              title: 'Upload from URL',
+              onClick: function(btn, map) {
+                var url = prompt('URL?', 'https://thomasmuguet.info/2017-07-29-refuge-muzelle-lac-lauvitel/track.gpx');
+                drawRoute.loadUrl('fetch.php?url=' + url);
+              },
+            },
+          ],
+        });
+        L.easyBar([importBtn]).addTo(map);
+
+        drawRoute.createFileLoaderControl();
+
+        var cleanBtn = L.easyButton({
+          states: [
+            {
+              icon: 'fa-trash',
+              title: 'Remove everything now',
+              onClick: function(btn, map) {
+                drawRoute.clean();
+              },
+            },
+          ],
+        });
+        L.easyBar([cleanBtn]).addTo(map);
+
+        drawRoute.on('TrackDrawer:start', function(e) {
+          $('#console').prepend('[' + new Date().toLocaleTimeString() + '] Treating file...<br>');
+        });
+        drawRoute.on('TrackDrawer:done', function(e) {
+          var state = drawRoute.getState();
+          $('#console').prepend(
+            '[' + new Date().toLocaleTimeString() + '] Track has now ' + state.length + ' segments<br>'
+          );
+        });
+      };
+    </script>
+  </body>
+</html>

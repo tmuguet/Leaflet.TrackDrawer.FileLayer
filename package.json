@@ -1,0 +1,72 @@
+{
+  "name": "leaflet-trackdrawer-filelayer",
+  "version": "0.1.0",
+  "description": "Enables Leaflet.TrackDrawer to import files from Leaflet.FileLayer",
+  "main": "dist/leaflet.trackdrawer.filelayer.min.js",
+  "scripts": {
+    "browserify:noruntime": "browserify -t [ babelify --presets [ @babel/preset-env ] ] -t browserify-shim -p browserify-derequire -o dist/leaflet.trackdrawer.filelayer.js src/index.js",
+    "uglify:noruntime": "uglifyjs dist/leaflet.trackdrawer.filelayer.js -o dist/leaflet.trackdrawer.filelayer.min.js",
+    "bundle:noruntime": "npm run browserify:noruntime && npm run uglify:noruntime",
+    "bundle": "npm run bundle:noruntime",
+    "eslint": "eslint src/*.js",
+    "test": "karma start karma.conf.js",
+    "validate": "npm run bundle && npm run eslint && npm run test",
+    "prepublishOnly": "npm run validate"
+  },
+  "repository": "github:tmuguet/Leaflet.TrackDrawer.FileLayer",
+  "author": {
+    "name": "Thomas Muguet",
+    "email": "hi@tmuguet.me",
+    "url": "https://tmuguet.me/"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tmuguet/Leaflet.TrackDrawer.FileLayer/issues"
+  },
+  "homepage": "https://github.com/tmuguet/Leaflet.TrackDrawer.FileLayer",
+  "browserify-shim": {
+    "leaflet": "global:L"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "@babel/polyfill": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/runtime": "^7.1.2",
+    "babelify": "^10.0.0",
+    "browserify": "^16.2.3",
+    "browserify-derequire": "^0.9.6",
+    "browserify-shim": "^3.8.14",
+    "chai": "^4.1.2",
+    "eslint": "^5.8.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "happen": "^0.3.2",
+    "jquery": "^3.3.1",
+    "karma": "^3.0.0",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-coverage": "^1.1.2",
+    "karma-firefox-launcher": "^1.1.0",
+    "karma-happen": "^0.1.0",
+    "karma-mocha": "^1.3.0",
+    "karma-phantomjs-launcher": "^1.0.4",
+    "karma-sinon": "^1.0.5",
+    "leaflet-easybutton": "^2.3.0",
+    "leaflet.awesome-markers": "^2.0.4",
+    "mocha": "^5.2.0",
+    "mocha-sinon": "^2.1.0",
+    "nyc": "^13.0.1",
+    "sinon": "^6.1.5",
+    "uglify-js": "^3.4.9"
+  },
+  "dependencies": {
+    "@mapbox/corslite": "0.0.7",
+    "@mapbox/togeojson": "^0.16.0",
+    "install": "^0.12.1",
+    "leaflet": "^1.3.4",
+    "leaflet-filelayer": "^1.2.0",
+    "leaflet-trackdrawer": "^0.1.0",
+    "npm": "^6.4.1"
+  }
+}
