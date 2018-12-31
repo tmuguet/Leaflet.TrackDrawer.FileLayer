@@ -71,7 +71,7 @@ L.TrackDrawer.Track.include({
       });
       this._fileLoader.on('data:error', (error) => {
         this._fileLoader.off();
-        reject(error);
+        reject(error.error);
       });
 
       this._fileLoader.load(file);
@@ -97,20 +97,25 @@ L.TrackDrawer.Track.include({
               });
               this._fileLoader.on('data:error', (error) => {
                 this._fileLoader.off();
-                reject(error);
+                reject(error.error);
               });
               this._fileLoader.loadData(resp.responseText, filename, ext);
               resolve();
             } catch (ex) {
               reject(ex);
             }
-          } else {
+          } else if (err.responseText) {
             try {
+              // Check if response is JSON
               const data = JSON.parse(err.responseText);
               reject(new Error(data.error));
             } catch (ex) {
-              reject(ex);
+              reject(new Error(err.statusText));
             }
+          } else if (err.statusText) {
+            reject(new Error(err.statusText));
+          } else {
+            reject(new Error(err));
           }
         },
         false,
