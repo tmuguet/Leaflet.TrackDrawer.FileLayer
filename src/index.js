@@ -78,13 +78,15 @@ L.TrackDrawer.Track.include({
     });
   },
 
-  loadUrl(url) {
+  loadUrl(url, useProxy = true) {
     const filename = url.split('/').pop();
     const ext = filename.split('.').pop();
 
+    const proxiedUrl = useProxy ? `fetch.php?url=${url}` : url;
+
     return new Promise((resolve, reject) => {
       corslite(
-        url,
+        proxiedUrl,
         (err, resp) => {
           if (!err) {
             try {
