@@ -237,7 +237,7 @@ L.TrackDrawer.Track.include({
       _this3._fileLoader.on('data:error', function (error) {
         _this3._fileLoader.off();
 
-        reject(error);
+        reject(error.error);
       });
 
       _this3._fileLoader.load(file);
@@ -246,10 +246,12 @@ L.TrackDrawer.Track.include({
   loadUrl: function loadUrl(url) {
     var _this4 = this;
 
+    var useProxy = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
     var filename = url.split('/').pop();
     var ext = filename.split('.').pop();
+    var proxiedUrl = useProxy ? "fetch.php?url=".concat(url) : url;
     return new Promise(function (resolve, reject) {
-      corslite(url, function (err, resp) {
+      corslite(proxiedUrl, function (err, resp) {
         if (!err) {
           try {
             _this4._fileLoader.on('data:loaded', function (event) {
@@ -263,7 +265,7 @@ L.TrackDrawer.Track.include({
             _this4._fileLoader.on('data:error', function (error) {
               _this4._fileLoader.off();
 
-              reject(error);
+              reject(error.error);
             });
 
             _this4._fileLoader.loadData(resp.responseText, filename, ext);
@@ -272,13 +274,18 @@ L.TrackDrawer.Track.include({
           } catch (ex) {
             reject(ex);
           }
-        } else {
+        } else if (err.responseText) {
           try {
+            // Check if response is JSON
             var data = JSON.parse(err.responseText);
             reject(new Error(data.error));
           } catch (ex) {
-            reject(ex);
+            reject(new Error(err.statusText));
           }
+        } else if (err.statusText) {
+          reject(new Error(err.statusText));
+        } else {
+          reject(new Error(err));
         }
       }, false);
     });

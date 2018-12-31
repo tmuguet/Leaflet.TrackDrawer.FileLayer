@@ -71,20 +71,22 @@ L.TrackDrawer.Track.include({
       });
       this._fileLoader.on('data:error', (error) => {
         this._fileLoader.off();
-        reject(error);
+        reject(error.error);
       });
 
       this._fileLoader.load(file);
     });
   },
 
-  loadUrl(url) {
+  loadUrl(url, useProxy = true) {
     const filename = url.split('/').pop();
     const ext = filename.split('.').pop();
 
+    const proxiedUrl = useProxy ? `fetch.php?url=${url}` : url;
+
     return new Promise((resolve, reject) => {
       corslite(
-        url,
+        proxiedUrl,
         (err, resp) => {
           if (!err) {
             try {
@@ -95,20 +97,25 @@ L.TrackDrawer.Track.include({
               });
               this._fileLoader.on('data:error', (error) => {
                 this._fileLoader.off();
-                reject(error);
+                reject(error.error);
               });
               this._fileLoader.loadData(resp.responseText, filename, ext);
               resolve();
             } catch (ex) {
               reject(ex);
             }
-          } else {
+          } else if (err.responseText) {
             try {
+              // Check if response is JSON
               const data = JSON.parse(err.responseText);
               reject(new Error(data.error));
             } catch (ex) {
-              reject(ex);
+              reject(new Error(err.statusText));
             }
+          } else if (err.statusText) {
+            reject(new Error(err.statusText));
+          } else {
+            reject(new Error(err));
           }
         },
         false,
