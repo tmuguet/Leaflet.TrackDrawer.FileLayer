@@ -78,7 +78,7 @@ L.TrackDrawer.Track.include({
     });
   },
 
-  loadUrl(url, useProxy = true) {
+  loadUrl(url, useProxy = false) {
     const filename = url.split('/').pop();
     const ext = filename.split('.').pop();
 
