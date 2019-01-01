@@ -45,15 +45,19 @@ L.TrackDrawer.Track.include({
         const latlngs = layers[i].getLatLngs();
         if (lastMarker === undefined) {
           lastMarker = L.TrackDrawer.node(latlngs[0]);
-          await this.addNode(lastMarker);
+          await this.addNode(lastMarker, undefined, true);
         }
 
         lastMarker = L.TrackDrawer.node(latlngs[latlngs.length - 1], {
           type: 'stopover',
         });
-        await this.addNode(lastMarker, (n1, n2, cb) => {
-          cb(null, latlngs);
-        });
+        await this.addNode(
+          lastMarker,
+          (n1, n2, cb) => {
+            cb(null, latlngs);
+          },
+          true,
+        );
       }
     }
     /* eslint-enable no-await-in-loop */
@@ -78,7 +82,7 @@ L.TrackDrawer.Track.include({
     });
   },
 
-  loadUrl(url, useProxy = true) {
+  loadUrl(url, useProxy = false) {
     const filename = url.split('/').pop();
     const ext = filename.split('.').pop();
 

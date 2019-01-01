@@ -181,7 +181,7 @@ L.TrackDrawer.Track.include({
 
                         lastMarker = L.TrackDrawer.node(latlngs[0]);
                         _context.next = 5;
-                        return _this2.addNode(lastMarker);
+                        return _this2.addNode(lastMarker, undefined, true);
 
                       case 5:
                         lastMarker = L.TrackDrawer.node(latlngs[latlngs.length - 1], {
@@ -190,7 +190,7 @@ L.TrackDrawer.Track.include({
                         _context.next = 8;
                         return _this2.addNode(lastMarker, function (n1, n2, cb) {
                           cb(null, latlngs);
-                        });
+                        }, true);
 
                       case 8:
                       case "end":
@@ -218,9 +218,11 @@ L.TrackDrawer.Track.include({
       }, _callee2, this);
     }));
 
-    return function _dataLoadedHandler(_x) {
+    function _dataLoadedHandler(_x) {
       return _dataLoadedHandler2.apply(this, arguments);
-    };
+    }
+
+    return _dataLoadedHandler;
   }(),
   loadFile: function loadFile(file) {
     var _this3 = this;
@@ -246,7 +248,7 @@ L.TrackDrawer.Track.include({
   loadUrl: function loadUrl(url) {
     var _this4 = this;
 
-    var useProxy = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+    var useProxy = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     var filename = url.split('/').pop();
     var ext = filename.split('.').pop();
     var proxiedUrl = useProxy ? "fetch.php?url=".concat(url) : url;
