@@ -29,9 +29,7 @@ L.TrackDrawer.Track.include({
   },
 
   async _dataLoadedHandler(layer) {
-    if (this._fireEvents) {
-      this.fire('TrackDrawer:start', {});
-    }
+    this._fireStart();
 
     const oldValue = this._fireEvents;
     this._fireEvents = false;
@@ -63,7 +61,7 @@ L.TrackDrawer.Track.include({
     /* eslint-enable no-await-in-loop */
 
     this._fireEvents = oldValue;
-    if (this._fireEvents) this.fire('TrackDrawer:done', {});
+    this._fireDone();
   },
 
   loadFile(file) {
