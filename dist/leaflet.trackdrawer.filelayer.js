@@ -228,13 +228,36 @@ L.TrackDrawer.Track.include({
     var _this3 = this;
 
     return new Promise(function (resolve, reject) {
-      _this3._fileLoader.on('data:loaded', function (event) {
-        _this3._dataLoadedHandler(event.layer);
+      _this3._fileLoader.on('data:loaded',
+      /*#__PURE__*/
+      function () {
+        var _ref = _asyncToGenerator(
+        /*#__PURE__*/
+        regeneratorRuntime.mark(function _callee3(event) {
+          return regeneratorRuntime.wrap(function _callee3$(_context3) {
+            while (1) {
+              switch (_context3.prev = _context3.next) {
+                case 0:
+                  _context3.next = 2;
+                  return _this3._dataLoadedHandler(event.layer);
 
-        _this3._fileLoader.off();
+                case 2:
+                  _this3._fileLoader.off();
 
-        resolve();
-      });
+                  resolve();
+
+                case 4:
+                case "end":
+                  return _context3.stop();
+              }
+            }
+          }, _callee3, this);
+        }));
+
+        return function (_x2) {
+          return _ref.apply(this, arguments);
+        };
+      }());
 
       _this3._fileLoader.on('data:error', function (error) {
         _this3._fileLoader.off();
@@ -256,13 +279,36 @@ L.TrackDrawer.Track.include({
       corslite(proxiedUrl, function (err, resp) {
         if (!err) {
           try {
-            _this4._fileLoader.on('data:loaded', function (event) {
-              _this4._dataLoadedHandler(event.layer);
+            _this4._fileLoader.on('data:loaded',
+            /*#__PURE__*/
+            function () {
+              var _ref2 = _asyncToGenerator(
+              /*#__PURE__*/
+              regeneratorRuntime.mark(function _callee4(event) {
+                return regeneratorRuntime.wrap(function _callee4$(_context4) {
+                  while (1) {
+                    switch (_context4.prev = _context4.next) {
+                      case 0:
+                        _context4.next = 2;
+                        return _this4._dataLoadedHandler(event.layer);
 
-              _this4._fileLoader.off();
+                      case 2:
+                        _this4._fileLoader.off();
 
-              resolve();
-            });
+                        resolve();
+
+                      case 4:
+                      case "end":
+                        return _context4.stop();
+                    }
+                  }
+                }, _callee4, this);
+              }));
+
+              return function (_x3) {
+                return _ref2.apply(this, arguments);
+              };
+            }());
 
             _this4._fileLoader.on('data:error', function (error) {
               _this4._fileLoader.off();
@@ -271,8 +317,6 @@ L.TrackDrawer.Track.include({
             });
 
             _this4._fileLoader.loadData(resp.responseText, filename, ext);
-
-            resolve();
           } catch (ex) {
             reject(ex);
           }

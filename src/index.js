@@ -68,8 +68,8 @@ L.TrackDrawer.Track.include({
 
   loadFile(file) {
     return new Promise((resolve, reject) => {
-      this._fileLoader.on('data:loaded', (event) => {
-        this._dataLoadedHandler(event.layer);
+      this._fileLoader.on('data:loaded', async (event) => {
+        await this._dataLoadedHandler(event.layer);
         this._fileLoader.off();
         resolve();
       });
@@ -94,8 +94,8 @@ L.TrackDrawer.Track.include({
         (err, resp) => {
           if (!err) {
             try {
-              this._fileLoader.on('data:loaded', (event) => {
-                this._dataLoadedHandler(event.layer);
+              this._fileLoader.on('data:loaded', async (event) => {
+                await this._dataLoadedHandler(event.layer);
                 this._fileLoader.off();
                 resolve();
               });
@@ -104,7 +104,6 @@ L.TrackDrawer.Track.include({
                 reject(error.error);
               });
               this._fileLoader.loadData(resp.responseText, filename, ext);
-              resolve();
             } catch (ex) {
               reject(ex);
             }
