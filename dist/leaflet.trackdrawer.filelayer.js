@@ -143,9 +143,7 @@ L.TrackDrawer.Track.include({
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
-              if (this._fireEvents) {
-                this.fire('TrackDrawer:start', {});
-              }
+              this._fireStart();
 
               oldValue = this._fireEvents;
               this._fireEvents = false;
@@ -208,7 +206,8 @@ L.TrackDrawer.Track.include({
             case 12:
               /* eslint-enable no-await-in-loop */
               this._fireEvents = oldValue;
-              if (this._fireEvents) this.fire('TrackDrawer:done', {});
+
+              this._fireDone();
 
             case 14:
             case "end":
