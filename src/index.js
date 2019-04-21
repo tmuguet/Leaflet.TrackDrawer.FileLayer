@@ -5,6 +5,35 @@ if (L.TrackDrawer === undefined) {
   throw new Error('Cannot find module "L.TrackDrawer"');
 }
 
+function split(polyline, distance = 100) {
+  if (distance <= 0) throw new Error('`distance` must be positive');
+
+  const latlngs = polyline.getLatLngs();
+  if (latlngs.length === 0) return [[]];
+
+  let result = [];
+  if (Array.isArray(latlngs[0])) {
+    for (let j = 0; j < latlngs.length; j += 1) {
+      result = result.concat(split(latlngs[j], distance));
+    }
+
+    return result;
+  }
+
+  let tmp = latlngs.splice(0, 1);
+  while (latlngs.length > 0) {
+    const [latlng] = latlngs.splice(0, 1);
+    tmp.push(latlng);
+    if (L.latLng(latlng).distanceTo(L.latLng(tmp[0])) > 100) {
+      result.push(L.polyline(tmp));
+      tmp = [latlng];
+    }
+  }
+  result.push(L.polyline(tmp));
+
+  return result;
+}
+
 L.TrackDrawer.Track.include({
   _createFileLoader() {
     this._fileLoader = L.FileLayer.fileLoader(null, {
@@ -28,7 +57,7 @@ L.TrackDrawer.Track.include({
     return this._fileLoaderController;
   },
 
-  async _dataLoadedHandler(layer) {
+  async _dataLoadedHandler(layer, insertWaypoints = false) {
     this._fireStart();
 
     const oldValue = this._fireEvents;
@@ -40,22 +69,26 @@ L.TrackDrawer.Track.include({
     /* eslint-disable no-await-in-loop */
     for (let i = 0; i < layers.length; i += 1) {
       if (layers[i] instanceof L.Polyline) {
-        const latlngs = layers[i].getLatLngs();
-        if (lastMarker === undefined) {
-          lastMarker = L.TrackDrawer.node(latlngs[0]);
-          await this.addNode(lastMarker, undefined, true);
-        }
+        const polylines = insertWaypoints ? split(layers[i], insertWaypoints) : [layers[i]];
+        const latlngs = polylines.map(l => l.getLatLngs());
 
-        lastMarker = L.TrackDrawer.node(latlngs[latlngs.length - 1], {
-          type: 'stopover',
-        });
-        await this.addNode(
-          lastMarker,
-          (n1, n2, cb) => {
-            cb(null, latlngs);
-          },
-          true,
-        );
+        for (let j = 0; j < latlngs.length; j += 1) {
+          if (lastMarker === undefined) {
+            lastMarker = L.TrackDrawer.node(latlngs[j][0]);
+            await this.addNode(lastMarker, undefined, true);
+          }
+
+          lastMarker = L.TrackDrawer.node(latlngs[j][latlngs[j].length - 1], {
+            type: j === latlngs.length - 1 ? 'stopover' : 'waypoint',
+          });
+          await this.addNode(
+            lastMarker,
+            (n1, n2, cb) => {
+              cb(null, latlngs[j]);
+            },
+            true,
+          );
+        }
       }
     }
     /* eslint-enable no-await-in-loop */
@@ -64,10 +97,10 @@ L.TrackDrawer.Track.include({
     this._fireDone();
   },
 
-  loadFile(file) {
+  loadFile(file, insertWaypoints = false) {
     return new Promise((resolve, reject) => {
       this._fileLoader.on('data:loaded', async (event) => {
-        await this._dataLoadedHandler(event.layer);
+        await this._dataLoadedHandler(event.layer, insertWaypoints);
         this._fileLoader.off();
         resolve();
       });
@@ -80,7 +113,7 @@ L.TrackDrawer.Track.include({
     });
   },
 
-  loadUrl(url, useProxy = false) {
+  loadUrl(url, useProxy = false, insertWaypoints = false) {
     const filename = url.split('/').pop();
     const ext = filename.split('.').pop();
 
@@ -93,7 +126,7 @@ L.TrackDrawer.Track.include({
           if (!err) {
             try {
               this._fileLoader.on('data:loaded', async (event) => {
-                await this._dataLoadedHandler(event.layer);
+                await this._dataLoadedHandler(event.layer, insertWaypoints);
                 this._fileLoader.off();
                 resolve();
               });

@@ -101,12 +101,54 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 var L = (typeof window !== "undefined" ? window['L'] : typeof global !== "undefined" ? global['L'] : null);
 
 var corslite = _dereq_('@mapbox/corslite');
 
 if (L.TrackDrawer === undefined) {
   throw new Error('Cannot find module "L.TrackDrawer"');
+}
+
+function split(polyline) {
+  var distance = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 100;
+  if (distance <= 0) throw new Error('`distance` must be positive');
+  var latlngs = polyline.getLatLngs();
+  if (latlngs.length === 0) return [[]];
+  var result = [];
+
+  if (Array.isArray(latlngs[0])) {
+    for (var j = 0; j < latlngs.length; j += 1) {
+      result = result.concat(split(latlngs[j], distance));
+    }
+
+    return result;
+  }
+
+  var tmp = latlngs.splice(0, 1);
+
+  while (latlngs.length > 0) {
+    var _latlngs$splice = latlngs.splice(0, 1),
+        _latlngs$splice2 = _slicedToArray(_latlngs$splice, 1),
+        latlng = _latlngs$splice2[0];
+
+    tmp.push(latlng);
+
+    if (L.latLng(latlng).distanceTo(L.latLng(tmp[0])) > 100) {
+      result.push(L.polyline(tmp));
+      tmp = [latlng];
+    }
+  }
+
+  result.push(L.polyline(tmp));
+  return result;
 }
 
 L.TrackDrawer.Track.include({
@@ -138,11 +180,18 @@ L.TrackDrawer.Track.include({
     regeneratorRuntime.mark(function _callee2(layer) {
       var _this2 = this;
 
-      var oldValue, layers, lastMarker, i;
-      return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      var insertWaypoints,
+          oldValue,
+          layers,
+          lastMarker,
+          i,
+          _args3 = arguments;
+      return regeneratorRuntime.wrap(function _callee2$(_context3) {
         while (1) {
-          switch (_context2.prev = _context2.next) {
+          switch (_context3.prev = _context3.next) {
             case 0:
+              insertWaypoints = _args3.length > 1 && _args3[1] !== undefined ? _args3[1] : false;
+
               this._fireStart();
 
               oldValue = this._fireEvents;
@@ -151,67 +200,99 @@ L.TrackDrawer.Track.include({
               layers = layer.getLayers();
               i = 0;
 
-            case 6:
+            case 7:
               if (!(i < layers.length)) {
-                _context2.next = 12;
+                _context3.next = 13;
                 break;
               }
 
               if (!(layers[i] instanceof L.Polyline)) {
-                _context2.next = 9;
+                _context3.next = 10;
                 break;
               }
 
-              return _context2.delegateYield(
+              return _context3.delegateYield(
               /*#__PURE__*/
               regeneratorRuntime.mark(function _callee() {
-                var latlngs;
-                return regeneratorRuntime.wrap(function _callee$(_context) {
-                  while (1) {
-                    switch (_context.prev = _context.next) {
-                      case 0:
-                        latlngs = layers[i].getLatLngs();
+                var polylines, latlngs, _loop, j;
 
-                        if (!(lastMarker === undefined)) {
-                          _context.next = 5;
+                return regeneratorRuntime.wrap(function _callee$(_context2) {
+                  while (1) {
+                    switch (_context2.prev = _context2.next) {
+                      case 0:
+                        polylines = insertWaypoints ? split(layers[i], insertWaypoints) : [layers[i]];
+                        latlngs = polylines.map(function (l) {
+                          return l.getLatLngs();
+                        });
+                        _loop =
+                        /*#__PURE__*/
+                        regeneratorRuntime.mark(function _loop(j) {
+                          return regeneratorRuntime.wrap(function _loop$(_context) {
+                            while (1) {
+                              switch (_context.prev = _context.next) {
+                                case 0:
+                                  if (!(lastMarker === undefined)) {
+                                    _context.next = 4;
+                                    break;
+                                  }
+
+                                  lastMarker = L.TrackDrawer.node(latlngs[j][0]);
+                                  _context.next = 4;
+                                  return _this2.addNode(lastMarker, undefined, true);
+
+                                case 4:
+                                  lastMarker = L.TrackDrawer.node(latlngs[j][latlngs[j].length - 1], {
+                                    type: j === latlngs.length - 1 ? 'stopover' : 'waypoint'
+                                  });
+                                  _context.next = 7;
+                                  return _this2.addNode(lastMarker, function (n1, n2, cb) {
+                                    cb(null, latlngs[j]);
+                                  }, true);
+
+                                case 7:
+                                case "end":
+                                  return _context.stop();
+                              }
+                            }
+                          }, _loop, this);
+                        });
+                        j = 0;
+
+                      case 4:
+                        if (!(j < latlngs.length)) {
+                          _context2.next = 9;
                           break;
                         }
 
-                        lastMarker = L.TrackDrawer.node(latlngs[0]);
-                        _context.next = 5;
-                        return _this2.addNode(lastMarker, undefined, true);
+                        return _context2.delegateYield(_loop(j), "t0", 6);
 
-                      case 5:
-                        lastMarker = L.TrackDrawer.node(latlngs[latlngs.length - 1], {
-                          type: 'stopover'
-                        });
-                        _context.next = 8;
-                        return _this2.addNode(lastMarker, function (n1, n2, cb) {
-                          cb(null, latlngs);
-                        }, true);
+                      case 6:
+                        j += 1;
+                        _context2.next = 4;
+                        break;
 
-                      case 8:
+                      case 9:
                       case "end":
-                        return _context.stop();
+                        return _context2.stop();
                     }
                   }
                 }, _callee, this);
-              })(), "t0", 9);
+              })(), "t0", 10);
 
-            case 9:
+            case 10:
               i += 1;
-              _context2.next = 6;
+              _context3.next = 7;
               break;
 
-            case 12:
+            case 13:
               /* eslint-enable no-await-in-loop */
               this._fireEvents = oldValue;
 
               this._fireDone();
 
-            case 14:
+            case 15:
             case "end":
-              return _context2.stop();
+              return _context3.stop();
           }
         }
       }, _callee2, this);
@@ -226,6 +307,7 @@ L.TrackDrawer.Track.include({
   loadFile: function loadFile(file) {
     var _this3 = this;
 
+    var insertWaypoints = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     return new Promise(function (resolve, reject) {
       _this3._fileLoader.on('data:loaded',
       /*#__PURE__*/
@@ -233,12 +315,12 @@ L.TrackDrawer.Track.include({
         var _ref = _asyncToGenerator(
         /*#__PURE__*/
         regeneratorRuntime.mark(function _callee3(event) {
-          return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          return regeneratorRuntime.wrap(function _callee3$(_context4) {
             while (1) {
-              switch (_context3.prev = _context3.next) {
+              switch (_context4.prev = _context4.next) {
                 case 0:
-                  _context3.next = 2;
-                  return _this3._dataLoadedHandler(event.layer);
+                  _context4.next = 2;
+                  return _this3._dataLoadedHandler(event.layer, insertWaypoints);
 
                 case 2:
                   _this3._fileLoader.off();
@@ -247,7 +329,7 @@ L.TrackDrawer.Track.include({
 
                 case 4:
                 case "end":
-                  return _context3.stop();
+                  return _context4.stop();
               }
             }
           }, _callee3, this);
@@ -271,6 +353,7 @@ L.TrackDrawer.Track.include({
     var _this4 = this;
 
     var useProxy = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+    var insertWaypoints = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
     var filename = url.split('/').pop();
     var ext = filename.split('.').pop();
     var proxiedUrl = useProxy ? "fetch.php?url=".concat(url) : url;
@@ -284,12 +367,12 @@ L.TrackDrawer.Track.include({
               var _ref2 = _asyncToGenerator(
               /*#__PURE__*/
               regeneratorRuntime.mark(function _callee4(event) {
-                return regeneratorRuntime.wrap(function _callee4$(_context4) {
+                return regeneratorRuntime.wrap(function _callee4$(_context5) {
                   while (1) {
-                    switch (_context4.prev = _context4.next) {
+                    switch (_context5.prev = _context5.next) {
                       case 0:
-                        _context4.next = 2;
-                        return _this4._dataLoadedHandler(event.layer);
+                        _context5.next = 2;
+                        return _this4._dataLoadedHandler(event.layer, insertWaypoints);
 
                       case 2:
                         _this4._fileLoader.off();
@@ -298,7 +381,7 @@ L.TrackDrawer.Track.include({
 
                       case 4:
                       case "end":
-                        return _context4.stop();
+                        return _context5.stop();
                     }
                   }
                 }, _callee4, this);
