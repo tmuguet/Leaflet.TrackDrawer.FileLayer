@@ -53,7 +53,7 @@
               title: 'Upload from URL',
               onClick: function(btn, map) {
                 var url = prompt('URL?', 'https://thomasmuguet.info/2017-07-29-refuge-muzelle-lac-lauvitel/track.gpx');
-                if (url) drawRoute.loadUrl(url, true, 100);
+                if (url) drawRoute.loadUrl(encodeURI(url), true, 100);
               },
             },
           ],
