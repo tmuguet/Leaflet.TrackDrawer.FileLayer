@@ -83,6 +83,7 @@
           $('#console').prepend(
             '[' + new Date().toLocaleTimeString() + '] Track has now ' + state.length + ' segments<br>'
           );
+          map.flyToBounds(drawRoute.getBounds());
         });
       };
     </script>
