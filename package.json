@@ -1,6 +1,6 @@
 {
   "name": "leaflet-trackdrawer-filelayer",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Enables Leaflet.TrackDrawer to import files from Leaflet.FileLayer",
   "main": "dist/leaflet.trackdrawer.filelayer.min.js",
   "scripts": {
